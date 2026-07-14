@@ -3,11 +3,6 @@ using UnityEngine;
 
 public class QuestionManager : MonoBehaviour
 {
-    private AdditionManager additionManager;
-    private SubtractionManager subtractionManager;
-    private MultiplicationManager multiplicationManager;
-    private DivisionManager divisionManager;
-
     public enum OperationType { Addition, Subtraction, Multiplication, Division }
     public enum DifficultyLevel { Level1, Level2, Level3, Level4, Level5, Level6 }
     [Header("Question Data")]
@@ -17,12 +12,23 @@ public class QuestionManager : MonoBehaviour
     [Header("Question Type")]
     public OperationType currentOperation;
     public DifficultyLevel currentDifficulty;
-    
-    [Header("Question Sprites")]
-    [SerializeField] private Sprite[] numberSprites;
-    public SpriteRenderer[] questionBoxSprites;
+
+    [SerializeField] private TMPro.TMP_Text questionText;
+    [SerializeField] private NumberManager numberManager;
 
     
+    private void Awake()
+    {
+        if (questionText == null)
+        {
+            questionText = FindFirstObjectByType<TMPro.TMP_Text>();
+        }
+
+        if (numberManager == null)
+        {
+            numberManager = FindFirstObjectByType<NumberManager>();
+        }
+    }
 
     // public void GenerateAddition(DifficultyLevel difficulty)
     // {
@@ -172,31 +178,94 @@ public class QuestionManager : MonoBehaviour
     // }
 
     private void Start() {
-        additionManager = FindFirstObjectByType<AdditionManager>();
-        subtractionManager = FindFirstObjectByType<SubtractionManager>();
-        multiplicationManager = FindFirstObjectByType<MultiplicationManager>();
-        divisionManager = FindFirstObjectByType<DivisionManager>();
+        GenerateQuestion(currentDifficulty);
+        UpdateCorrectCombination();
+        RefreshQuestionText();
+    }
+
+    public void RefreshQuestion()
+    {
+        GenerateQuestion(currentDifficulty);
+        UpdateCorrectCombination();
+        RefreshQuestionText();
+    }
+
+    protected virtual void GenerateQuestion(DifficultyLevel difficulty)
+    {
         switch (currentOperation)
         {
             case OperationType.Addition:
-                additionManager.GenerateQuestion(currentDifficulty);
+                GenerateAdditionQuestion(difficulty);
                 break;
             case OperationType.Subtraction:
-                // subtractionManager.GenerateQuestion(currentDifficulty);
+                Debug.LogWarning("Subtraction is not implemented yet.");
                 break;
             case OperationType.Multiplication:
-                // multiplicationManager.GenerateQuestion(currentDifficulty);
+                Debug.LogWarning("Multiplication is not implemented yet.");
                 break;
             case OperationType.Division:
-                // divisionManager.GenerateQuestion(currentDifficulty);
+                Debug.LogWarning("Division is not implemented yet.");
                 break;
         }
     }
 
-    private void UpdateBoxSprites()
+    protected void GenerateAdditionQuestion(DifficultyLevel difficulty)
     {
-        // update the question box sprites to match the numbers in the question
-        questionBoxSprites[0].sprite = numberSprites[number1];
-        questionBoxSprites[1].sprite = numberSprites[number2];
+        switch (difficulty)
+        {
+            case DifficultyLevel.Level1:
+                correctAnswer = Random.Range(1, 21);
+                number1 = Random.Range(1, correctAnswer);
+                number2 = correctAnswer - number1;
+                break;
+            case DifficultyLevel.Level2:
+                correctAnswer = Random.Range(1, 101);
+                number1 = Random.Range(1, correctAnswer);
+                number2 = correctAnswer - number1;
+                break;
+            case DifficultyLevel.Level3: // NYI
+            case DifficultyLevel.Level4: // NYI
+            case DifficultyLevel.Level5: // NYI
+            case DifficultyLevel.Level6: // NYI
+                GenerateAdditionQuestion(DifficultyLevel.Level2);
+                break;
+        }
+    }
+
+    private void RefreshQuestionText()
+    {
+        if (questionText == null)
+        {
+            Debug.LogWarning("QuestionManager needs a TMP_Text assigned to questionText or in a child object.", this);
+            return;
+        }
+
+        // update the question box text to reflect the current question
+        questionText.text = $"{number1} {GetOperationSymbol(currentOperation)} {number2} = ";
+    }
+
+    private void UpdateCorrectCombination()
+    {
+        if (numberManager == null)
+        {
+            numberManager = FindFirstObjectByType<NumberManager>();
+        }
+
+        if (numberManager != null)
+        {
+            numberManager.SetCorrectCombination(correctAnswer);
+        }
+    }
+
+    private string GetOperationSymbol(OperationType op)
+    {
+        switch (op)
+        {
+            case OperationType.Addition: return "+";
+            case OperationType.Subtraction: return "-";
+            case OperationType.Multiplication: return "×";
+            case OperationType.Division: return "÷";
+            default: return "?";
+        }
     }
 }

@@ -688,6 +688,8 @@ MonoBehaviour:
   correctAnswer: 0
   currentOperation: 0
   currentDifficulty: 2
+  numberSprites: []
+  questionBoxSprites: []
 --- !u!4 &758109340
 Transform:
   m_ObjectHideFlags: 0
